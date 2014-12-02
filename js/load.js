@@ -12,6 +12,8 @@ var progressBar = game.add.sprite(game.world.centerX, 200, 'progressBar'); progr
     game.load.image('coin', 'assets/tut/coin.png');
     game.load.image('wallV', 'assets/tut/wallVertical.png');
     game.load.image('wallH', 'assets/tut/wallHorizontal.png');
+
+    game.load.image('pipe', 'assets/star.png');
     // Load a new asset that we will use in the menu state
     game.load.image('background', 'assets/tut/background.png');
     // Dean: Load sound assets

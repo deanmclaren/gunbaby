@@ -24,8 +24,8 @@ var fireRate = 1000;
 var nextFire = 0;
 var bulletSpeed = 300;
 var maxAmountOfBulletsOnScreen = 100;
-var startingX = 100;
-var startingY = 100;
+var startingX = 500;
+var startingY = 500;
 
 
 var playState = {
@@ -42,6 +42,8 @@ preload: function(){
     game.load.spritesheet('baby', 'assets/dude.png', 32, 48);
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('gun', 'assets/gun.png');
+    game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
+    game.load.spritesheet('missle', 'assets/missles.gif', 77, 36);
 
 
 },
@@ -53,6 +55,15 @@ create: function() {
    //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
+    // um this physics I think I need for the missles
+    //mistest
+    game.physics.startSystem(Phaser.Physics.P2JS);
+
+
+
+
+
+
     //dean: set the boundaries of the world
     //game.world.setBounds(0, 0, 800, 600);
     game.world.setBounds(0, 0, 3400, 1000)
@@ -60,11 +71,13 @@ create: function() {
 
     //  A simple background for our game
     //game.add.sprite(0, 0, 'sky');
-
-    //
-
     land = game.add.tileSprite(0, 0, 800, 600, 'sky');
     land.fixedToCamera = true;
+
+    //Dean: the flappy pipes
+    this.pipes = game.add.group(); // Create a group
+    this.pipes.enableBody = true;  // Add physics to the group
+    this.pipes.createMultiple(200, 'pipe'); // Create 20 pipes
 
 
 
@@ -109,6 +122,11 @@ create: function() {
 
 
     //  We need to enable physics on the player
+
+    //game.physics.arcade.enable(player);
+    //mistest
+
+    //arcadephysics
     game.physics.arcade.enable(player);
 
     //DEAN: get camera to follow
@@ -126,7 +144,7 @@ create: function() {
 
 
     //  Player physics properties. Give the little guy a slight bounce.
-    player.body.bounce.y = 0.2;
+    //player.body.bounce.y = 0.2;
 
     //gravity
     player.body.gravity.y = 300;
@@ -135,6 +153,8 @@ create: function() {
     //  Our two animations, walking left and right.
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+
 
     cursors = game.input.keyboard.createCursorKeys();
 
@@ -154,33 +174,91 @@ create: function() {
     this.deadSound = game.add.audio('dead');
 
     //Dean: Background Music
-    this.music = game.add.audio('song'); // Add the music
+    this.music = game.add.audio('songREMOVE'); // Add the music. Remove REMOVE to play
     this.music.loop = true; // Make it loop
     this.music.play(); // Start the music
 
+    //call pipes every 15 seconds
+    this.timer = game.time.events.loop(1500, this.addRowOfPipes, this);
 
+    //  An explosion pool
+    explosions = game.add.group();
+    explosions.createMultiple(30, 'kaboom');
+    explosions.forEach(this.exploAnimation, this);
+
+
+
+
+    ///////////////////////
+    //MISSLE CODE HERE. MCODE mcode
+    //missles.animations.add();
+
+
+    missles = game.add.group();
+    //mistest Missile animation
+
+    for (var i = 0; i < 10; i++) {
+        var missle = missles.create(game.rnd.integerInRange(200, 1700), game.rnd.integerInRange(-200, 400), 'missle');
+        //
+        //game.physics.arcade.enable(missle,true);
+        game.physics.p2.enable(missle,false);
+
+
+        missle.animations.add('spin', [0,1,2,3,4,5,4,3,2,1] , 10, true);
+
+        missle.animations.play('spin');
+
+    }
+
+    //missles.create
+    //cursors = game.input.keyboard.createCursorKeys();
+    //ship = game.add.sprite(32, game.world.height - 150, 'car');
+    //game.physics.p2.enable(ship);
+
+
+},
+
+
+// Only for the explosion effect
+exploAnimation: function(thing) {
+
+    thing.anchor.x = 0.5;
+    thing.anchor.y = 0.5;
+    thing.animations.add('kaboom');
 
 },
 
 update: function() {
 
    //  Collide the player and the stars with the platforms
+
+    //arcadephysics
     game.physics.arcade.collide(player, platforms);
 
 
+    // mistest
+    //game.physics.arcade.collide(player, missles);
 
+    //game.physics.arcade.collide(missles, missles);
 
 
      //  Reset the players velocity (movement)
     //player.body.velocity.x = 0;
+
+    //arcadephysics
+
+    ////////////////////////////////
+
+
     if (player.body.touching.down)
     {
-        //player.body.velocity.x = 0;
+        player.body.velocity.x = 0;
 
         //player.body.drag.set(.2);
     }
 
-
+    //mistest
+    //missles.animations.play('spin');
 
     if (cursors.left.isDown)
     {
@@ -209,6 +287,7 @@ update: function() {
     {
         player.body.velocity.y = -350;
         this.jumpSound.play();
+
     }
 
 
@@ -232,6 +311,80 @@ update: function() {
     }
 // */
 
+    // hit a pipe and die
+    game.physics.arcade.overlap(player, this.pipes, this.playerDie, null, this);
+
+    //shoot a pipe and boom it explodes
+    game.physics.arcade.overlap(bullets, this.pipes, this.collisionHandler, null, this);
+
+
+    //make missles accelerate to the baby
+    missles.forEachAlive(this.moveMissles,this);  //make bullets accelerate to ship
+
+
+},
+//mistest
+moveMissles: function(missle) {
+     this.accelerateToObject(missle,player,30);  //start accelerateToObject on every bullet
+},
+
+accelerateToObject: function(obj1, obj2, speed) {
+    if (typeof speed === 'undefined') { speed = 60; }
+
+    //mistest
+    var angle = Math.atan2(obj2.y - obj1.y, obj2.x - obj1.x);
+
+    //P2 obj1.body.rotation ARCADE obj1.rotation
+    obj1.body.rotation = angle + game.math.degToRad(0);  // correct angle of angry bullets (depends on the sprite used)
+
+    // arcade physics
+    //obj1.body.velocity.x = speed * Math.cos(angle);
+    //obj1.body.velocity.y = speed * Math.sin(angle);
+
+    // P2 physics
+    obj1.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
+    obj1.body.force.y = Math.sin(angle) * speed;
+
+
+},
+
+
+
+addOnePipe: function(x, y) {
+    // Get the first dead pipe of our group
+    var pipe = this.pipes.getFirstDead();
+
+    // Set the new position of the pipe
+
+    //currently has a bug with if over 200 pipes spawn it crashes
+    pipe.reset(x, y);
+
+    // Add velocity to the pipe to make it move left
+    pipe.body.velocity.x = -100;
+
+    // Kill the pipe when it's no longer visible
+    pipe.checkWorldBounds = true;
+    pipe.outOfBoundsKill = true;
+
+},
+
+addRowOfPipes: function() {
+    // Pick where the hole will be
+    var hole = Math.floor(Math.random() * 5) + 1;
+
+    // Add the 6 pipes
+    for (var i = 0; i < 8; i++)
+        if (i != hole && i != hole + 1)
+            this.addOnePipe(1000, i * 60 + 100);
+},
+
+playerDie: function() {
+// When the player dies, we go to the menu
+game.state.start('menu');
+
+this.deadSound.play();
+this.music.stop();
+
 },
 
 fire: function() {
@@ -245,7 +398,9 @@ fire: function() {
 
         var bullet = bullets.getFirstDead();
 
-        bullet.reset(gun.x  , gun.y );
+        //shootsfrom
+
+        bullet.reset(gun.x, gun.y);
 
         game.physics.arcade.moveToPointer(bullet, bulletSpeed);
 
@@ -268,10 +423,10 @@ fire: function() {
         //game.physics.arcade.angleBetween(player, game.input)
 
 
-        //below kind of works#############################################
+        //works#############################################
         angleToPointer = game.physics.arcade.angleToPointer(player, game.input);
-        game.debug.text(angleToPointer,320, 450, "white");
-        game.physics.arcade.velocityFromRotation(angleToPointer-3.14159, 600, player.body.velocity);
+        //game.debug.text(angleToPointer,320, 450, "white");
+        game.physics.arcade.velocityFromRotation(angleToPointer-3.14159, 300, player.body.velocity);
         //########################################################
 
 
@@ -288,6 +443,38 @@ fire: function() {
 
 },
 
+collisionHandler: function(bullet, pipe) {
+
+    //  When a bullet hits an alien we kill them both
+    bullet.kill();
+    pipe.kill();
+
+    //  Increase the score
+    //score += 20;
+    //scoreText.text = scoreString + score;
+
+    //  And create an explosion :)
+    var explosion = explosions.getFirstExists(false);
+    explosion.reset(pipe.body.x, pipe.body.y);
+    explosion.play('kaboom', 30, false, true);
+
+
+    this.deadSound.play();
+    // if (alien.countLiving() == 0)
+    // {
+    //     score += 1000;
+    //     scoreText.text = scoreString + score;
+
+    //     enemyBullets.callAll('kill',this);
+    //     stateText.text = " You Won, \n Click to restart";
+    //     stateText.visible = true;
+
+    //     //the "click to restart" handler
+    //     game.input.onTap.addOnce(restart,this);
+    // }
+
+},
+
 render: function() {
 
     //game.debug.text('Active Bullets: ' + bullets.countLiving() + ' / ' + bullets.total, 32, 32);
@@ -301,14 +488,7 @@ render: function() {
     //game.debug.text('guyy' + player.body.y,164,64);
 },
 
-playerDie: function() {
-// When the player dies, we go to the menu
-game.state.start('menu');
 
-//this.deadSound.play();
-this.music.stop();
-
-},
 
 };
 

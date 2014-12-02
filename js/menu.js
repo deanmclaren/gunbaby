@@ -28,6 +28,10 @@ scoreLabel.anchor.setTo(0.5, 0.5);
 // When the 'upKey' is pressed, it will call the 'start' function once
  upKey.onDown.addOnce(this.start, this);
 
+ //var click = game.input.activePointer.justPressed();
+
+
+
 // if (game.input.activePointer.isDown)
 //     {this.start;
 //     }
@@ -36,6 +40,10 @@ scoreLabel.anchor.setTo(0.5, 0.5);
 
 
 },
+
+
+
+
 start: function() {
 // Start the actual game
 game.state.start('play');
