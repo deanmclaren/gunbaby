@@ -41,10 +41,14 @@ preload: function(){
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('baby', 'assets/dude.png', 32, 48);
     game.load.image('bullet', 'assets/bullet.png');
-    game.load.image('gun', 'assets/gun.png');
+    //game.load.image('gun', 'assets/gun.png');
+    game.load.image('gun', 'assets/gunbaby.gif');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
     game.load.spritesheet('missle', 'assets/missles.gif', 77, 36);
 
+
+    //oldarcade
+    //game.load.spritesheet('gunbaby','assets/gunbaby.gif',100,50);
 
 },
 
@@ -53,11 +57,11 @@ preload: function(){
 
 create: function() {
    //  We're going to be using physics, so enable the Arcade Physics system
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+    //game.physics.startSystem(Phaser.Physics.ARCADE);
 
     // um this physics I think I need for the missles
     //mistest
-    // game.physics.startSystem(Phaser.Physics.P2JS);
+    //game.physics.startSystem(Phaser.Physics.P2JS);
 
 
 
@@ -115,8 +119,11 @@ create: function() {
 
 
     // The player and its settings
-    //player = game.add.sprite(32, game.world.height - 150, 'dude');
-    player = game.add.sprite(startingX, startingY, 'baby');
+    //oldarcade
+    //player = game.add.sprite(startingX, startingY, 'baby');
+    player = game.add.sprite(startingX, startingY, 'gunbaby');
+    //player.scale.setTo(.01,.1);
+
     //set anchor to middle of player
     player.anchor.setTo(0.5, 1);
 
@@ -127,7 +134,8 @@ create: function() {
     //mistest
 
     //arcadephysics
-    game.physics.arcade.enable(player);
+
+    game.physics.arcade.enableBody(player);
 
     //DEAN: get camera to follow
     game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
@@ -136,9 +144,9 @@ create: function() {
     gun = game.add.sprite(startingX, startingY, 'gun', 'baby');
 
 
-    gun.scale.x = .1;
-    gun.scale.y = .1;
-    gun.anchor.setTo(.15, .9);
+    //gun.scale.x = .1;
+    //gun.scale.y = .1;
+    gun.anchor.setTo(.5, .5);
     //gun.anchor.setTo(-1, -1);
 
 
@@ -151,8 +159,9 @@ create: function() {
     player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    //oldarcade
+    //player.animations.add('left', [0, 1, 2, 3], 10, true);
+    //player.animations.add('right', [5, 6, 7, 8], 10, true);
 
 
 
@@ -194,11 +203,11 @@ create: function() {
     //missles.animations.add();
 
 
-    missles = game.add.group();
+    this.missles = game.add.group();
     //mistest Missile animation
 
     for (var i = 0; i < 10; i++) {
-        var missle = missles.create(game.rnd.integerInRange(200, 1700), game.rnd.integerInRange(-200, 400), 'missle');
+        var missle = this.missles.create(game.rnd.integerInRange(200, 1700), game.rnd.integerInRange(-200, 400), 'missle');
         //
         game.physics.arcade.enable(missle,true);
         //game.physics.p2.enable(missle,false);
@@ -237,9 +246,11 @@ update: function() {
 
 
     // mistest
-    //game.physics.arcade.collide(player, missles);
+    game.physics.arcade.collide(player, this.missles);
 
-    //game.physics.arcade.collide(missles, missles);
+    //game.physics.arcade.collide(bullets, this.missles);
+
+    game.physics.arcade.collide(this.missles, this.missles);
 
 
      //  Reset the players velocity (movement)
@@ -250,45 +261,45 @@ update: function() {
     ////////////////////////////////
 
 
-    if (player.body.touching.down)
-    {
-        player.body.velocity.x = 0;
+    // if (player.body.touching.down)
+    // {
+    //     player.body.velocity.x = 0;
 
-        //player.body.drag.set(.2);
-    }
+    //     //player.body.drag.set(.2);
+    // }
 
     //mistest
     //missles.animations.play('spin');
 
-    if (cursors.left.isDown)
-    {
-        //  Move to the left
-        player.body.velocity.x = -150;
+    // if (cursors.left.isDown)
+    // {
+    //     //  Move to the left
+    //     player.body.velocity.x = -150;
 
-        player.animations.play('left');
-    }
-    else if (cursors.right.isDown)
-    {
-        //  Move to the right
-        player.body.velocity.x = 150;
+    //     player.animations.play('left');
+    // }
+    // else if (cursors.right.isDown)
+    // {
+    //     //  Move to the right
+    //     player.body.velocity.x = 150;
 
-        player.animations.play('right');
-    }
-    else
-    {
-        //  Stand still
-        player.animations.stop();
+    //     player.animations.play('right');
+    // }
+    // else
+    // {
+    //     //  Stand still
+    //     player.animations.stop();
 
-        player.frame = 4;
-    }
+    //     player.frame = 4;
+    // }
 
-    //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down)
-    {
-        player.body.velocity.y = -350;
-        this.jumpSound.play();
+    // //  Allow the player to jump if they are touching the ground.
+    // if (cursors.up.isDown && player.body.touching.down)
+    // {
+    //     player.body.velocity.y = -350;
+    //     this.jumpSound.play();
 
-    }
+    // }
 
 
 
@@ -323,10 +334,26 @@ update: function() {
 
 
     //make missles accelerate to the baby
-    missles.forEachAlive(this.moveMissles,this);  //make bullets accelerate to ship
+    this.missles.forEachAlive(this.moveMissles,this);  //make bullets accelerate to ship
+
+
+    //use hack check overlap function to collide bullets and missles since missles are
+    //currently p2 physics
+
+    // if (this.checkOverlap(bullets, missles))
+    // {
+    //     text.text = 'Drag the sprites. Overlapping: true';
+    // }
+    // else
+    // {
+    //     text.text = 'Drag the sprites. Overlapping: false';
+    // }
 
 
 },
+
+
+
 //mistest
 moveMissles: function(missle) {
      this.accelerateToObject(missle,player,30);  //start accelerateToObject on every bullet
@@ -339,15 +366,17 @@ accelerateToObject: function(obj1, obj2, speed) {
     var angle = Math.atan2(obj2.y - obj1.y, obj2.x - obj1.x);
 
     //P2 obj1.body.rotation ARCADE obj1.rotation
-    obj1.rotation = angle + game.math.degToRad(0);  // correct angle of angry bullets (depends on the sprite used)
+
+    //rotation off for now
+    //obj1.rotation = angle + game.math.degToRad(0);  // correct angle of angry bullets (depends on the sprite used)
 
     // arcade physics
     obj1.body.velocity.x = speed * Math.cos(angle);
     obj1.body.velocity.y = speed * Math.sin(angle);
 
     // P2 physics
-    // obj1.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
-    // obj1.body.force.y = Math.sin(angle) * speed;
+    //obj1.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
+    //obj1.body.force.y = Math.sin(angle) * speed;
 
 
 },
@@ -479,6 +508,9 @@ collisionHandler: function(bullet, object) {
 
 },
 
+
+
+
 render: function() {
 
     //game.debug.text('Active Bullets: ' + bullets.countLiving() + ' / ' + bullets.total, 32, 32);
@@ -490,8 +522,24 @@ render: function() {
     //game.debug.text('pointery' + game.input.y,32,64);
     //game.debug.text('guyx' + player.body.x,164,32);
     //game.debug.text('guyy' + player.body.y,164,64);
+
+    game.debug.body(player);
+
+    this.missles.forEachAlive(this.renderGroup, this);
 },
 
+renderGroup: function(member) {
+    game.debug.body(member);
+},
+
+checkOverlap: function(spriteA, spriteB) {
+
+    var boundsA = spriteA.getBounds();
+    var boundsB = spriteB.getBounds();
+
+    return Phaser.Rectangle.intersects(boundsA, boundsB);
+
+},
 
 
 };
