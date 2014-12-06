@@ -10,15 +10,15 @@ create: function() {
       { font: '50px Arial', fill: '#ffffff' });
     nameLabel.anchor.setTo(0.5, 0.5);
     // Show the score at the center of the screen
-var scoreLabel = game.add.text(game.world.centerX, game.world.centerY,
-  'score: ' + game.global.score,
-{ font: '25px Arial', fill: '#ffffff' });
-scoreLabel.anchor.setTo(0.5, 0.5);
-
-// Explain how to start the game
-// var startLabel = game.add.text(game.world.centerX, game.world.height-80,
-//   'press the up arrow key to start',
+// var scoreLabel = game.add.text(game.world.centerX, game.world.centerY,
+//   'score: ' + game.global.score,
 // { font: '25px Arial', fill: '#ffffff' });
+// scoreLabel.anchor.setTo(0.5, 0.5);
+
+//Explain how to start the game
+var startLabel = game.add.text(game.world.centerX, game.world.height-80,
+  'press the up arrow key to start',
+{ font: '25px Arial', fill: '#ffffff' });
 
 // startLabel.anchor.setTo(0.5, 0.5);
 

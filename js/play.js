@@ -24,8 +24,8 @@ var fireRate = 1000;
 var nextFire = 0;
 var bulletSpeed = 300;
 var maxAmountOfBulletsOnScreen = 100;
-var startingX = 500;
-var startingY = 500;
+var startingX = 400;
+var startingY = 10;
 
 
 var playState = {
@@ -36,11 +36,11 @@ var playState = {
 
 preload: function(){
 
-    game.load.image('sky', 'assets/sky.png');
+    game.load.image('sky', 'assets/sky2.jpg');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
-    game.load.spritesheet('baby', 'assets/dude.png', 32, 48);
-    game.load.image('bullet', 'assets/bullet.png');
+    game.load.spritesheet('baby', 'assets/dude.png', 32, 32);
+    game.load.image('bullet', 'assets/bullet1.png');
     //game.load.image('gun', 'assets/gun.png');
     game.load.image('gun', 'assets/gunbaby.gif');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
@@ -70,7 +70,7 @@ create: function() {
 
     //dean: set the boundaries of the world
     //game.world.setBounds(0, 0, 800, 600);
-    game.world.setBounds(0, 0, 3400, 1000)
+    game.world.setBounds(0, 0, 800, 600);
 
 
     //  A simple background for our game
@@ -93,27 +93,27 @@ create: function() {
     platforms.enableBody = true;
 
     // Here we create the ground.
-    var ground = platforms.create(0, game.world.height - 64, 'ground');
+    //var ground = platforms.create(0, game.world.height - 64, 'ground');
 
     //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(1000, 2);
+    //ground.scale.setTo(1000, 2);
 
     //  This stops it from falling away when you jump on it
-    ground.body.immovable = true;
+    //ground.body.immovable = true;
 
     //  Now let's create two ledges
-    var ledge = platforms.create(0, 0, 'ground');
+    //var ledge = platforms.create(0, 0, 'ground');
 
     //dean: double size
-    ledge.scale.setTo(2, 2);
+    //ledge.scale.setTo(2, 2);
 
-    ledge.body.immovable = true;
+    //ledge.body.immovable = true;
 
-    ledge = platforms.create(0, 250, 'ground');
+    //ledge = platforms.create(0, 250, 'ground');
     //ledge.body.rotation(1);
 
 
-    ledge.body.immovable = true;
+    //ledge.body.immovable = true;
 
 
 
@@ -121,8 +121,10 @@ create: function() {
     // The player and its settings
     //oldarcade
     //player = game.add.sprite(startingX, startingY, 'baby');
-    player = game.add.sprite(startingX, startingY, 'gunbaby');
+    player = game.add.sprite(startingX, startingY, 'baby');
     //player.scale.setTo(.01,.1);
+
+    player.alpha = -100;
 
     //set anchor to middle of player
     player.anchor.setTo(0.5, 1);
@@ -156,7 +158,7 @@ create: function() {
 
     //gravity
     player.body.gravity.y = 300;
-    player.body.collideWorldBounds = true;
+    //player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
     //oldarcade
@@ -177,13 +179,15 @@ create: function() {
     bullets.setAll('outOfBoundsKill', true);
 
 
+
     //Dean: Adding sounds / audio
     this.jumpSound = game.add.audio('jump');
     this.coinSound = game.add.audio('coin');
     this.deadSound = game.add.audio('dead');
+    this.deadPlayerSound = game.add.audio('cry');
 
     //Dean: Background Music
-    this.music = game.add.audio('songREMOVE'); // Add the music. Remove REMOVE to play
+    this.music = game.add.audio('song'); // Add the music. Remove REMOVE to play
     this.music.loop = true; // Make it loop
     this.music.play(); // Start the music
 
@@ -207,7 +211,7 @@ create: function() {
     //mistest Missile animation
 
     for (var i = 0; i < 10; i++) {
-        var missle = this.missles.create(game.rnd.integerInRange(200, 1700), game.rnd.integerInRange(-200, 400), 'missle');
+        var missle = this.missles.create(game.rnd.integerInRange(-1000, 200), game.rnd.integerInRange(400, 800), 'missle');
         //
         game.physics.arcade.enable(missle,true);
         //game.physics.p2.enable(missle,false);
@@ -223,7 +227,7 @@ create: function() {
     //cursors = game.input.keyboard.createCursorKeys();
     //ship = game.add.sprite(32, game.world.height - 150, 'car');
     //game.physics.p2.enable(ship);
-
+    game.world.bringToTop(gun);
 
 },
 
@@ -309,6 +313,14 @@ update: function() {
     //points the gun
     gun.rotation = game.physics.arcade.angleToPointer(gun, game.input);
 
+
+
+    if (!player.inWorld){
+        this.playerDie();
+    }
+
+
+
       //pew pew
 
 // /*
@@ -348,6 +360,16 @@ update: function() {
     // {
     //     text.text = 'Drag the sprites. Overlapping: false';
     // }
+
+
+     enemiesAlive = 10 -this.missles.countLiving();
+
+     if (enemiesAlive == 10){
+        game.add.text(game.world.centerX - 200, 100,'You Win',
+            { font: '100px Arial', fill: '#ffffff' });
+    };
+
+
 
 
 },
@@ -393,7 +415,7 @@ addOnePipe: function(x, y) {
     pipe.reset(x, y);
 
     // Add velocity to the pipe to make it move left
-    pipe.body.velocity.x = -100;
+    pipe.body.velocity.y = 100;
 
     // Kill the pipe when it's no longer visible
     pipe.checkWorldBounds = true;
@@ -406,16 +428,16 @@ addRowOfPipes: function() {
     var hole = Math.floor(Math.random() * 5) + 1;
 
     // Add the 6 pipes
-    for (var i = 0; i < 8; i++)
+    for (var i = 0; i < 6; i++)
         if (i != hole && i != hole + 1)
-            this.addOnePipe(1000, i * 60 + 100);
+            this.addOnePipe(i * 150, -100);
 },
 
 playerDie: function() {
 // When the player dies, we go to the menu
 game.state.start('menu');
 
-this.deadSound.play();
+this.deadPlayerSound.play();
 this.music.stop();
 
 },
@@ -433,7 +455,7 @@ fire: function() {
 
         //shootsfrom
 
-        bullet.reset(gun.x, gun.y);
+        bullet.reset(player.x+15, player.y-50);
 
         game.physics.arcade.moveToPointer(bullet, bulletSpeed);
 
@@ -523,9 +545,13 @@ render: function() {
     //game.debug.text('guyx' + player.body.x,164,32);
     //game.debug.text('guyy' + player.body.y,164,64);
 
-    game.debug.body(player);
+    //sgame.debug.text('Active Bullets:',50,50);
+    game.debug.text('Rockets Destroyed: ' + enemiesAlive + ' / ' + '10', 32, 32);
 
-    this.missles.forEachAlive(this.renderGroup, this);
+    //good debug
+    //game.debug.body(player);
+
+    //this.pipes.forEachAlive(this.renderGroup, this);
 },
 
 renderGroup: function(member) {
